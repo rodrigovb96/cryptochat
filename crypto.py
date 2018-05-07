@@ -1,7 +1,8 @@
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.Cipher import AES
+from Crypto.Cipher import PKCS1_OAEP,AES
 from Crypto.Random import get_random_bytes
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
 
 class CryptoEngine(object):
 	
@@ -29,7 +30,7 @@ class CryptoEngine(object):
 			self.__AES_ready = state
 
 
-	def init_RSA(self,key=None,key_size=2048):
+	def init_RSA_mode(self,key=None,key_size=2048):
 		if (key != None):
 			self.RSA_key_obj = RSA.import_key(key)
 		else:
@@ -81,30 +82,63 @@ class CryptoEngine(object):
 		else:
 			raise Exception('Trying to decrypt with a public key')
 
-	def init_AES(self):
+	def init_AES_mode(self):
 		self.__set_AES_ready(True)
 
-	def encrypt_AES_string(self,raw_str,key):
+	def encrypt_AES_string(self,raw_str,AES_key,RSA_private_key):
 		if(not self.__AES_ready):
 			raise Exception('AES state not set')
 			
 		nonce = get_random_bytes(16)
-		cipher = AES.new(key,AES.MODE_EAX,nonce=nonce)
+		cipher = AES.new(AES_key,AES.MODE_EAX,nonce=nonce)
 		ciphertext, tag = cipher.encrypt_and_digest(bytearray(raw_str,'utf-8'))
 		
-		return (ciphertext,tag,nonce)
+		signer = CryptoEngine()
+		signer.init_SIG_mode(RSA_private_key)
+		signature = signer.sign_string(tag)
+
+		return (ciphertext,tag,nonce,signature)
 	
-	def decrypt_AES_string(self,AES_info,key):
+	def decrypt_AES_string(self,AES_info,AES_key,RSA_public_key):
 		if (not self.__AES_ready):
 			raise Exception('AES state not set')
 
-		ciphertext,tag,nonce = AES_info
-		cipher = AES.new(key,AES.MODE_EAX,nonce=nonce)
+		ciphertext,tag,nonce,signature = AES_info
+		cipher = AES.new(AES_key,AES.MODE_EAX,nonce=nonce)
 		
-		try:
-			plaintext = cipher.decrypt_and_verify(ciphertext,tag)
-		except ValueError:
-			raise Exception('Corrupted message')
+		signer = CryptoEngine()
+		signer.init_SIG_mode(RSA_public_key)
 		
-		return plaintext.decode()
+		if(signer.verify_sign(tag,signature)):
+			try:
+				plaintext = cipher.decrypt_and_verify(ciphertext,tag)
+			except ValueError:
+				raise Exception('Corrupted message')
+			
+			return plaintext.decode()
+		else:
+			raise Exception('Message not authentic')
 	
+	def init_SIG_mode(self,RSA_key=None):
+		self.init_RSA_mode(key=RSA_key)
+	
+	def sign_string(self,unsigned_str):
+		
+		private_key = self.generate_RSA_keypair()[0]
+		str_hash = SHA256.new(unsigned_str)
+		signature = pkcs1_15.new(self.RSA_key_obj).sign(str_hash)
+
+		return signature
+
+	def verify_sign(self,unsigned_str,signature):
+		public_key = self.generate_RSA_keypair()[1]
+		str_hash = SHA256.new(unsigned_str)
+		try:
+			pkcs1_15.new(self.RSA_key_obj).verify(str_hash,signature)
+			return True
+		except (ValueError):
+			return False
+
+
+
+
