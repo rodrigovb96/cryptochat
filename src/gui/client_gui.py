@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import pyqtSlot
 import sys
 
+
 class chat_window(QWidget):
 
     def __init__(self, parent=None):
@@ -16,8 +17,10 @@ class chat_window(QWidget):
 
         self.chat_text = QTextEdit()
         self.input_text = QTextEdit()
+
         self.send_btn = QPushButton("Enviar",self)
         self.send_btn.clicked.connect(self.send_msg)
+
         self.clear_btn = QPushButton("Limpar",self)
         self.clear_btn.clicked.connect(self.clear_msg)
 
