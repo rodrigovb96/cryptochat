@@ -8,8 +8,10 @@ class CryptoEngine(object):
 	
 
 	def __init__(self):
+		self.__HASH_ready = False
 		self.__RSA_ready = False
 		self.__AES_ready = False
+		self.__ready = False
 
 	def is_RSA_ready(self):
 		return self.__RSA_ready
@@ -17,35 +19,47 @@ class CryptoEngine(object):
 	def is_AES_ready(self):
 		return self.__AES_ready
 
+	def is_HASH_ready(self):
+		return self.__HASH_ready
+
 	def __set_RSA_ready(self,state):
-		if(self.__AES_ready):
+		if(not self.__RSA_ready and self.__ready):
 			raise Exception('Error setting RSA state')
 		else:	
 			self.__RSA_ready = state
+			self.__ready = state
 
 	def __set_AES_ready(self,state):
-		if(self.__RSA_ready):
+		if(not self.__AES_ready and self.__ready):
 			raise Exception('Error setting AES state')
 		else:
 			self.__AES_ready = state
+			self.__ready = state
+
+	def __set_HASH_ready(self,state):
+		if(not self.__HASH_ready and self.__ready):
+			raise Exception('Error setting HASH state')
+		else:
+			self.__HASH_ready = state
+			self.__ready = state
 
 
-	def init_RSA_mode(self,key=None,key_size=2048):
+	def init_RSA_mode(self,key=None,key_size=2048,_passphrase=None):
 		if (key != None):
-			self.RSA_key_obj = RSA.import_key(key)
+			self.RSA_key_obj = RSA.import_key(key,passphrase=_passphrase)
 		else:
 			self.RSA_key_obj = RSA.generate(key_size)
 
 		self.__set_RSA_ready(True) 
 
-	def generate_RSA_keypair(self):
+	def generate_RSA_keypair(self,_passphrase=None):
 		if (not self.__RSA_ready):
 			raise Exception('RSA state not set')
 			
 		private_key_obj = self.RSA_key_obj
 		public_key_obj = private_key_obj.publickey()
 
-		private_key = private_key_obj.export_key()
+		private_key = private_key_obj.export_key(passphrase=_passphrase)
 		public_key = public_key_obj.export_key()
 
 		return (private_key,public_key)
@@ -139,6 +153,17 @@ class CryptoEngine(object):
 		except (ValueError):
 			return False
 
+	def init_HASH_mode(self):
+		self.__set_HASH_ready(True)
+		
+	def hash_string(self,raw_string):
+		if(not self.is_HASH_ready()):
+			raise Exception('HASH state not set')
+		
+		h = SHA256.new(raw_string.encode('utf-8'))
+
+		return h.hexdigest() 
 
 
 
+	
