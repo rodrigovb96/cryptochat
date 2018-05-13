@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import pyqtSlot
+from client_gui import chat_window
 import sys
 
 
@@ -14,7 +15,7 @@ class login_window(QWidget):
 		self.init_components()
 
 	
-	def init_components(self):
+	def init_components(self) -> None:
 		
 		self.layout = QVBoxLayout()		
 
@@ -42,10 +43,21 @@ class login_window(QWidget):
 		
 		self.setLayout(self.layout)
 	
+	def valid_input(self) -> bool:
+		if not self.name_text.text() and not self.password_text.text():
+			return False 
+		else:
+			return True 
+			
+	
 	@pyqtSlot()	
 	def connect(self):
-		"Verifica a Conexão com o banco"
-		pass
+		if self.valid_input() == True:
+			self.close()
+			self.second = chat_window(self)
+			self.second.show()
+		else:
+			QMessageBox.warning(self,"Erro!","Valores Informados Inválidos", QMessageBox.Ok)
 	
 
 
