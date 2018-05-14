@@ -5,16 +5,16 @@ import sys
 
 class chat_window(QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,username="User"):
         super(chat_window, self).__init__()
         self.setWindowTitle("Chat")
 	
         self.setFixedSize(640,480)
         self.init_components()
+        self.username = username
 
     def init_components(self) -> None:
 	
-        self.sender_name = "usuário"
         self.chat_text = QTextEdit()
         self.input_text = QTextEdit()
 
@@ -41,7 +41,7 @@ class chat_window(QWidget):
 
     @pyqtSlot()
     def send_msg(self) -> None:
-       self.chat_text.append(self.sender_name + ": " + self.input_text.toPlainText())
+       self.chat_text.append(self.username+ ": " + self.input_text.toPlainText())
        self.input_text.clear()
 
     @pyqtSlot()
