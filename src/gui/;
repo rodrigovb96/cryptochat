@@ -44,7 +44,7 @@ class ChatUser(object):
 			try:
 				key.init_RSA_mode(key=file_data,_passphrase=self.__password)
 			except ValueError as e:
-                                raise e 
+                                raise ValueError 
 
 			self.rsaKey = key
 

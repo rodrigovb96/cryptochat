@@ -53,15 +53,26 @@ class login_window(QWidget):
         else:
             return True 
                 
+    def clear_components(self) -> None:
+        self.name_text.setText("")
+        self.password_text.setText("")
     
     @pyqtSlot()	
-    def connect(self):
+    def connect(self) -> None:
         if self.valid_input() == True:
-            user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
-            user_.set_rsaKey()
-            self.close()
-            self.second = chat_window(username=self.name_text.text())
-            self.second.show()
+
+            try:
+                user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
+                user_.set_rsaKey()
+            except ValueError as error:
+                QMessageBox.critical(self,"Erro!","Usuário ou Senha Inválidos!\nInsira os dados novamente.", QMessageBox.Ok)
+                self.clear_components()
+            else:
+                self.close()
+                self.second = chat_window(username=self.name_text.text())
+                self.second.show()
+
+
         else:
             QMessageBox.warning(self,"Erro!","Valores Informados Inválidos", QMessageBox.Ok)
     
