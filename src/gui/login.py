@@ -77,9 +77,9 @@ class login_window(QWidget):
             QMessageBox.warning(self,"Erro!","Valores Informados Inválidos", QMessageBox.Ok)
     
 
-
-if __name__ == '__main__':
+def start():
     app = QApplication(sys.argv)
     login = login_window()
     login.show()
     sys.exit(app.exec_())
+

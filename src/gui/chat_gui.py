@@ -38,14 +38,22 @@ class chat_window(QWidget):
         self.chat_text.setReadOnly(True)
         self.setLayout(self.layout)
         
+    def invalid_input(self) -> bool:
+        return not self.input_text.toPlainText()
 
     @pyqtSlot()
     def send_msg(self) -> None:
-       self.chat_text.append(self.username+ ": " + self.input_text.toPlainText())
-       self.input_text.clear()
+        
+        if not self.invalid_input(): 
+           self.chat_text.append(self.username+ ": " + self.input_text.toPlainText())
+           self.input_text.clear()
 
     @pyqtSlot()
     def clear_msg(self) -> None:
        self.input_text.clear()
 
 
+app = QApplication(sys.argv)
+login = chat_window()
+login.show()
+sys.exit(app.exec_())
