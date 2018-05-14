@@ -60,7 +60,7 @@ class login_window(QWidget):
             user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
             user_.set_rsaKey()
             self.close()
-            self.second = chat_window(self)
+            self.second = chat_window(username=self.name_text.text())
             self.second.show()
         else:
             QMessageBox.warning(self,"Erro!","Valores Informados Inválidos", QMessageBox.Ok)
