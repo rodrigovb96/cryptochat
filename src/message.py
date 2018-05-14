@@ -36,7 +36,7 @@ class Message(object):
 
 	def get_string(self):
 		self.encrypt()
-		string = '{cipher:{AES_info[0]},AEStag:{AES_info[1]},msgNonce:{AES_info[2]},signature{AES_info[3]},sender:{sender_},receiver:{receiver_},date:{date_}}'.format(AES_info=self.AES_info,sender_=self.sender.get_username(),receiver_=self.receiver,date_=self.date)	
+		string = '{"cipher":{AES_info[0]},"AEStag":{AES_info[1]},"msgNonce":{AES_info[2]},"signature":{AES_info[3]},"sender":{sender_},"receiver":{receiver_},"date":{date_}}'.format(AES_info=self.AES_info,sender_=self.sender.get_username(),receiver_=self.receiver,date_=self.date)	
 	
 	def encrypt(self,AES_key):
 		if (len(AES_key) not in [16,24,32]):
