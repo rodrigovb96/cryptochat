@@ -1,6 +1,6 @@
 import os,sys
 
-utils_path = os.getcwd()+'/utils'
+utils_path = '../utils'
 
 sys.path.insert(0,utils_path)
 
