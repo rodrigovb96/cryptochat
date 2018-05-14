@@ -15,6 +15,9 @@ class ChatUser(object):
 		self.__password = password
 		self.rsaKey = None
 
+		self.set_rsaKey()
+
+
 	def get_username(self):
 		return self.username
 	def get_password(self):
@@ -38,6 +41,23 @@ class ChatUser(object):
 			
 			utils.create_file(filename,privatekey.decode('utf-8'))
 		else:
-			key.init_RSA_mode(key=file_data,_passphrase=self.__password)
+			try:
+				key.init_RSA_mode(key=file_data,_passphrase=self.__password)
+			except ValueError as e:
+				print('Password Error!')
+
 			self.rsaKey = key
 
+	def get_user_publicKey(self):
+		if(self.rsaKey != None):
+			publickey = self.rsaKey.generate_RSA_keypair()[1]
+			return publickey
+		else:
+			raise Exception('RSA key not set')
+
+	def get_user_privateKey(self):
+		if(self.rsaKey != None):
+			privatekey = self.rsaKey.generate_RSA_keypair()[0]
+			return privatekey
+		else:
+			raise Exception('RSA key not set')
