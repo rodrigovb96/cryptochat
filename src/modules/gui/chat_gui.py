@@ -53,7 +53,3 @@ class chat_window(QWidget):
        self.input_text.clear()
 
 
-app = QApplication(sys.argv)
-login = chat_window()
-login.show()
-sys.exit(app.exec_())
