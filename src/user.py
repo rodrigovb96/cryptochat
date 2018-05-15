@@ -1,7 +1,9 @@
 import os,sys
 
-utils_path = '../utils'
+#utils_path = '../utils'
 
+utils_path = os.path.split(os.path.realpath(__file__))[0] + '/utils'
+print(utils_path)
 sys.path.insert(0,utils_path)
 
 import utils
