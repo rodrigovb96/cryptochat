@@ -1,11 +1,8 @@
 import os,sys
 
-utils_path = '../utils'
 
-sys.path.insert(0,utils_path)
-
-import utils
-from crypto import CryptoEngine
+import modules.utils.files as utils
+from modules.base.crypto import CryptoEngine
 
 
 class ChatUser(object):

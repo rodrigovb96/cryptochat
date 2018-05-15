@@ -1,12 +1,9 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import pyqtSlot
-from chat_gui import chat_window
+
+from modules.gui.chat_gui import chat_window
 import os,sys
-
-
-sys.path.insert(0,'..')
-
-import user
+from .. import user
 
 class login_window(QWidget):
 
@@ -61,6 +58,7 @@ class login_window(QWidget):
     def connect(self) -> None:
         if self.valid_input() == True:
 
+
             try:
                 user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
                 user_.set_rsaKey()
@@ -83,3 +81,7 @@ def start():
     login.show()
     sys.exit(app.exec_())
 
+app = QApplication(sys.argv)
+login = login_window()
+login.show()
+sys.exit(app.exec_())
