@@ -1,7 +1,7 @@
 import os,sys
 
 import modules.utils.files as utils
-from modules.base.crypto import CryptoEngine
+from modules.crypto import CryptoEngine
 
 
 class ChatUser(object):

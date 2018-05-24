@@ -1,17 +1,14 @@
-from crypto import CryptoEngine
-from user import ChatUser
+from modules.crypto import CryptoEngine
+from modules.user import ChatUser
 
 class Message(object):
 	
-	def __init__(self,_sender: ChatUser,_receiver: str,_date: str,_text = None):
+	def __init__(self,_sender: ChatUser,_receiver: str,_date: str,_text=None):
 		self.text = _text
 		self.sender = _sender
 		self.receiver = _receiver
 		self.date = _date
 		self.AES_info = None
-
-	def __init__(self,_AES_info):
-		self.AES_info = _AES_info
 
 	def set_text(self,_text):
 		self.text = _text
