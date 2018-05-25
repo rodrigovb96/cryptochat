@@ -7,6 +7,8 @@ import os,sys
 
 from .. import user
 
+import time
+
 ''' 
     @DEBUG 
 ''' 
@@ -90,6 +92,9 @@ class login_window(QWidget):
                 self.clear_components()
             else:
                 # Se o input for válido tenta a conexão com o banco
+                self.name_text.setEnabled(False)
+                self.password_text.setEnabled(False)
+                self.login_btn.setEnabled(False)
                 self.call_auth_socket()
                
         else:
@@ -133,7 +138,7 @@ class login_thread(QObject):
     def test(self) -> None:
         for i in range(100):
             print("Thread rodando")
-
+        time.sleep(3)
         self.result.emit(True) 
 
 
