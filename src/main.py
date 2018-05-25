@@ -1,12 +1,6 @@
-import modules.gui.login 
+import modules.gui.login  as login
 from threading import Thread
 
 
-gui.login.start()
+login.start()
 
-'''
-Thread(target=gui.login.start).start()
-
-while True:
-    print("WORK\n")
-'''
