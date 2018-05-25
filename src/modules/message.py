@@ -1,17 +1,15 @@
-from crypto import CryptoEngine
-from user import ChatUser
+from modules.crypto import CryptoEngine
+from modules.user import ChatUser
+import pickle
 
 class Message(object):
 	
-	def __init__(self,_sender: ChatUser,_receiver: str,_date: str,_text = None):
+	def __init__(self,_sender: ChatUser,_receiver: str,_date: str,_text=None):
 		self.text = _text
 		self.sender = _sender
 		self.receiver = _receiver
 		self.date = _date
 		self.AES_info = None
-
-	def __init__(self,_AES_info):
-		self.AES_info = _AES_info
 
 	def set_text(self,_text):
 		self.text = _text
@@ -39,8 +37,9 @@ class Message(object):
 
 	def get_string(self,AES_key):
 		self.encrypt(AES_key)
-		string = '{{"cipher":{AES_info[0]},"AEStag":{AES_info[1]},"msgNonce":{AES_info[2]},"signature":{AES_info[3]},"sender":{sender_},"receiver":{receiver_},"date":{date_}}}'.format(AES_info=self.AES_info,sender_=self.sender.get_username(),receiver_=self.receiver,date_=self.date)	
-
+		data = [self.AES_info,self.sender.get_username(),self.receiver,self.date]
+#		string = r'{{"cipher":{AES_info[0]},"AEStag":{AES_info[1]},"msgNonce":{AES_info[2]},"signature":{AES_info[3]},"sender":{sender_},"receiver":{receiver_},"date":{date_}}}'.format(AES_info=self.AES_info,sender_=self.sender.get_username(),receiver_=self.receiver,date_=self.date)	
+		string = pickle.dumps(data)
 		return string
 	
 	def encrypt(self,AES_key):

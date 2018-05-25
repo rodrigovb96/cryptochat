@@ -1,13 +1,17 @@
-from message import Message
-from user import ChatUser
-
+from modules.message import Message
+from modules.user import ChatUser
+import pickle
 u = ChatUser('eduardo','123')
 
 
-m = Message(u,'voce','10/10/2010',_text = 'mensagem massa')
+m = Message(u,'voce','10/10/2010',_text='mensagem massa')
 
 senha = b'Sixteen byte key'
 
-json = m.get_string(senha)
+sdata = m.get_string(senha)
 
-print(json)
+
+print(len(sdata))
+
+data = pickle.loads(sdata)
+
