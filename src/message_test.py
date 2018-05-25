@@ -4,14 +4,18 @@ import pickle
 u = ChatUser('eduardo','123')
 
 
-m = Message(u,'voce','10/10/2010',_text='mensagem massa')
+m = Message(sender = u,receiver = 'voce',date = '10/10/2010',text='mensagem massa')
 
 senha = b'Sixteen byte key'
 
-sdata = m.get_string(senha)
+data_sent = m.get_string(senha)
+#transferencia
+data_received = pickle.loads(data_sent)
 
+_AES_info,_sender,_receiver,_date = data_received
 
-print(len(sdata))
+n = Message(_sender,_receiver,_date,AES_info = _AES_info)
 
-data = pickle.loads(sdata)
+n.decrypt(senha,u.get_user_publicKey())
 
+print(n.get_text())
