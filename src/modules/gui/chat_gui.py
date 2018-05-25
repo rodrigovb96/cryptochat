@@ -19,6 +19,7 @@ class chat_window(QWidget):
         self.input_text = QTextEdit()
 
         self.send_btn = QPushButton("Enviar",self)
+        self.send_btn.setStyleSheet("background-color: #F7CE16")
         self.send_btn.clicked.connect(self.send_msg)
 
         self.clear_btn = QPushButton("Limpar",self)
