@@ -6,8 +6,8 @@ from modules.gui.chat_gui import chat_window
 import os,sys
 
 from .. import user
+import socket,pickle
 
-import time
 
 ''' 
     @DEBUG 
@@ -22,7 +22,7 @@ def log(**kwargs):
 
 class login_window(QWidget):
 
-    signal_start_background_job = pyqtSignal()    
+    signal_start_background_job = pyqtSignal(str,str)    
 
     def __init__(self, parent=None):
         super(login_window,self).__init__()
@@ -37,6 +37,8 @@ class login_window(QWidget):
 
     
     def init_components(self) -> None:
+        self.user_ = None 
+
         self.layout = QVBoxLayout()		
 
         self.label_name = QLabel()
@@ -46,7 +48,7 @@ class login_window(QWidget):
         self.label_pass.setText("Senha:")
 
         self.login_btn = QPushButton("Logar",self)
-        self.login_btn.clicked.connect(self.connect)
+        self.login_btn.clicked.connect(self.login)
         
         self.name_text = QLineEdit()
         self.password_text = QLineEdit()
@@ -69,7 +71,7 @@ class login_window(QWidget):
 
         self.socket.moveToThread(self.thread)
 
-        self.signal_start_background_job.connect(self.socket.test)
+        self.signal_start_background_job.connect(self.socket.connect)
 
     def valid_input(self) -> bool:
         if not self.name_text.text() and not self.password_text.text():
@@ -82,11 +84,10 @@ class login_window(QWidget):
         self.password_text.setText("")
     
     @pyqtSlot()	
-    def connect(self) -> None:
+    def login(self) -> None:
         if self.valid_input() == True:
             try:
-                user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
-                user_.set_rsaKey()
+                self.user_= user.ChatUser(username=self.name_text.text(),password=self.password_text.text())
             except ValueError as error:
                 QMessageBox.critical(self,"Erro!","Usuário ou Senha Inválidos!\nInsira os dados novamente.", QMessageBox.Ok)
                 self.clear_components()
@@ -103,16 +104,16 @@ class login_window(QWidget):
 
     def call_auth_socket(self):
         self.thread.start()
-        self.signal_start_background_job.emit()
+        self.signal_start_background_job.emit(self.user_.get_username(),self.user_.get_password())
 
-    @pyqtSlot(bool)
+    @pyqtSlot(str)
     def auth_result(self,auth_flag):
         self.thread.quit()
         self.thread.wait()
         
-        if auth_flag == True:
+        if auth_flag == 'True':
             self.close()
-            self.chat_win = chat_window(self,username=self.name_text.text())
+            self.chat_win = chat_window(self,username=self.user_.get_username())
             self.chat_win.show()
         else:
             QMessageBox.warning(self,"Erro!","Problemas na conexão com o banco", QMessageBox.Ok) # Warning de exemplo
@@ -128,18 +129,34 @@ class login_window(QWidget):
     e realizar a autenticação do usuário
 '''
 class login_thread(QObject):
-    result = pyqtSignal(bool)
+    result = pyqtSignal(str)
 
     '''
         O código abaixo é temporário 
         será subistituido pelo socket para conexão com o banco
     '''
-    @pyqtSlot()
-    def test(self) -> None:
-        for i in range(100):
-            print("Thread rodando")
-        time.sleep(3)
-        self.result.emit(True) 
+    @pyqtSlot(str,str)
+    def connect(self,user,password) -> None:
+
+        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+        soc.connect(("192.168.100.55", 12345))
+
+        public_key_bytes = soc.recv(4096)
+        public_key = public_key_bytes.decode("utf8") # the return will be in bytes, so decode
+
+        soc.send("ack".encode("utf8"))
+
+        soc.send(pickle.dumps({"user" : public_key+user,  "password" : public_key+password }))
+
+        result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
+        result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
+        self.result.emit(result_string)
+        
+
+
+
+        
+
 
 
 
