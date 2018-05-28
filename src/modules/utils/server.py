@@ -28,6 +28,15 @@ def client_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
     print('Connection ' + ip + ':' + port + ' ended')
 
 def start_server():
+    conn.sendall("pika".encode("utf8"))
+    ack = None
+    
+    while(ack != "ack"):
+    	data = conn.recv(MAX_BUFFER_SIZE)
+    	ack = data.decode('utf8').rstrip()
+    	print('Esperando ACK')
+    
+    print('publickey enviada com sucesso!')
 
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this is for easy starting/killing the app
