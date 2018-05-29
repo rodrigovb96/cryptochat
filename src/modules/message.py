@@ -47,7 +47,6 @@ class Message(object):
 	def get_string(self,AES_key):
 		self.encrypt(AES_key)
 		data = [self._AES_info,self._sender.get_username(),self._receiver,self._date]
-#		string = r'{{"cipher":{AES_info[0]},"AEStag":{AES_info[1]},"msgNonce":{AES_info[2]},"signature":{AES_info[3]},"sender":{sender_},"receiver":{receiver_},"date":{date_}}}'.format(AES_info=self._AES_info,sender_=self._sender.get_username(),receiver_=self._receiver,date_=self._date)	
 		string = pickle.dumps(data)
 		return string
 	
