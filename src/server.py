@@ -8,7 +8,10 @@ def process_input(input_string):
     processed_data = pickle.loads(input_string)
     return processed_data
 
-def chat_thread(conn, ip, port, key, MAX_BUFFER_SIZE = 4096):
+def chat_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
+
+    key = CryptoEngine()
+    key.init_RSA_mode()
 
     private_key,public_key = key.generate_RSA_keypair()
 
@@ -46,8 +49,6 @@ def chat_thread(conn, ip, port, key, MAX_BUFFER_SIZE = 4096):
 
 def start_server():
 
-    key = CryptoEngine()
-    key.init_RSA_mode()
 
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this is for easy starting/killing the app
@@ -74,7 +75,7 @@ def start_server():
         ip, port = str(addr[0]), str(addr[1])
         LOG('Accepting connection from ' + ip + ':' + port)
         try:
-            Thread(target=chat_thread, args=(conn, ip, port,key)).start()
+            Thread(target=chat_thread, args=(conn, ip, port)).start()
         except:
             print('Terible error!')
             import traceback
