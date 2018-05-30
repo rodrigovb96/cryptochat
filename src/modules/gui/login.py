@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, QObject
 
+from modules.crypto import CryptoEngine
 
 from modules.gui.chat_gui import chat_window
 import os,sys
@@ -9,15 +10,6 @@ from .. import user
 import socket,pickle
 
 
-''' 
-    @DEBUG 
-''' 
-def log(**kwargs):
-    print('*'*30)
-    print("DEBUG:")
-    for key in kwargs:
-        print("{} : {}".format(key,kwargs[key]))
-    print('*'*30)
 
 
 class login_window(QWidget):
@@ -131,22 +123,21 @@ class login_window(QWidget):
 class login_thread(QObject):
     result = pyqtSignal(str)
 
-    '''
-        O código abaixo é temporário 
-        será subistituido pelo socket para conexão com o banco
-    '''
     @pyqtSlot(str,str)
     def connect(self,user,password) -> None:
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("192.168.100.55", 12345))
+        soc.connect(("192.168.100.47", 12345))
 
-        public_key_bytes = soc.recv(4096)
-        public_key = public_key_bytes.decode("utf8") # the return will be in bytes, so decode
+        public_key = soc.recv(4096)
 
-        soc.send("ack".encode("utf8"))
+        encrypt_obj = CryptoEngine()
+        encrypt_obj.init_RSA_mode(key=public_key)
 
-        soc.send(pickle.dumps({"user" : public_key+user,  "password" : public_key+password }))
+        user = encrypt_obj.encrypt_RSA_string(raw_str=user.encode("utf8")) 
+        password = encrypt_obj.encrypt_RSA_string(raw_str=password.encode("utf8")) 
+
+        soc.send(pickle.dumps({"user" : user,  "password" : password }))
 
         result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
         result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode

@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, QObject
 import sys
+
+import socket, pickle
 
 
 class chat_window(QWidget):
+
 
     def __init__(self, parent=None,username="User"):
         super(chat_window, self).__init__()
@@ -19,7 +22,7 @@ class chat_window(QWidget):
         self.input_text = QTextEdit()
 
         self.send_btn = QPushButton("Enviar",self)
-        self.send_btn.setStyleSheet("background-color: #F7CE16")
+        self.send_btn.setStyleSheet("background-color: #F7CE16") # botão enviar fica amarelo
         self.send_btn.clicked.connect(self.send_msg)
 
         self.clear_btn = QPushButton("Limpar",self)
@@ -52,5 +55,7 @@ class chat_window(QWidget):
     @pyqtSlot()
     def clear_msg(self) -> None:
        self.input_text.clear()
+
+
 
 
