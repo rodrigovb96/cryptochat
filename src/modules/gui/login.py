@@ -3,7 +3,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, QObject
 
 from modules.crypto import CryptoEngine
 
-from modules.gui.chat_gui import chat_window
+from modules.gui.friends_gui import friends_list 
 import os,sys
 
 from .. import user
@@ -105,7 +105,8 @@ class login_window(QWidget):
         
         if auth_flag == 'True':
             self.close()
-            self.chat_win = chat_window(self,username=self.user_.get_username())
+            self.friends_win = friends_list();
+
             self.chat_win.show()
         else:
             QMessageBox.warning(self,"Erro!","Problemas na conexão com o banco", QMessageBox.Ok) # Warning de exemplo
