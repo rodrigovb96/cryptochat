@@ -105,7 +105,7 @@ class login_window(QWidget):
         
         if auth_flag == 'True':
             self.close()
-            self.friends_win = friends_list();
+            self.friends_win = friends_list(username=self.user_get_username());
 
             self.chat_win.show()
         else:

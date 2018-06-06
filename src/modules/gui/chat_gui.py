@@ -7,6 +7,7 @@ import socket, pickle
 
 class chat_window(QWidget):
 
+    closed = pyqtSignal()
 
     def __init__(self, parent=None,username="User"):
         super(chat_window, self).__init__()
@@ -41,6 +42,9 @@ class chat_window(QWidget):
         
         self.chat_text.setReadOnly(True)
         self.setLayout(self.layout)
+
+    def closeEvent(self,event):
+        self.closed.emit()
         
     def invalid_input(self) -> bool:
         return not self.input_text.toPlainText()
