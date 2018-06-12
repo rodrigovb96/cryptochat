@@ -9,6 +9,9 @@ import socket,pickle
 
 class friends_list(QWidget):
 
+
+    closed = pyqtSignal()
+
     def __init__(self, parent=None,username="user"):
         super(friends_list,self).__init__()
         self.setWindowTitle("Amigos")
@@ -43,18 +46,26 @@ class friends_list(QWidget):
         for i in range(10): #TEMP 
             self.listWidget.addItem("Teste{}".format(i))
 
+    def closeEvent(self,event):
+        for thread in self.thread_pool:
+            thread.quit()
+            thread.wait()
+        self.closed.emit()
+
     @pyqtSlot(int)
     def end_thread(self,id_) -> None:
         print(id_)
         self.thread_pool[id_].quit()
         self.thread_pool[id_].wait()
         self.thread_pool.pop(id_)
+        self.receiver_pool.pop(id_)
 
 
     @pyqtSlot(QListWidgetItem)
     def open_chat(self,receiver) -> None:
+
         if receiver.text() not in self.receiver_pool:
-            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool),sender=self.username,receiver=receiver.text()))
+            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.username,receiver=receiver.text()))
             self.receiver_pool.append(receiver.text())
             self.thread_pool.append(QThread())
             self.chat_pool[-1].moveToThread(self.thread_pool[-1])
@@ -74,15 +85,15 @@ class chat_friend_thread(QObject):
         self.sender = sender
         self.receiver = receiver
         
-        self.chat_win = chat_window(username=self.sender)
+        self.chat_win = chat_window(username=self.sender,receiver=self.receiver)
         self.chat_win.closed.connect(self.done)
         self.chat_win.show()
 
     @pyqtSlot()
-    def done(self):
+    def done(self) -> None:
         self.finished.emit(self.id)
 
-    def chat(self):
+    def chat(self) -> None:
         if self.chat_win.isVisible() == False:
             self.finished.emit(self.id)
 
@@ -90,6 +101,6 @@ class chat_friend_thread(QObject):
 
 def start():#TEMP
     app = QApplication(sys.argv)
-    login = friends_list(username="Rodrigo")
+    login = friends_list(username="Rodrigo") # TEMP 
     login.show()
     sys.exit(app.exec_())
