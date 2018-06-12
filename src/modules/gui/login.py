@@ -105,9 +105,9 @@ class login_window(QWidget):
         
         if auth_flag == 'True':
             self.close()
-            self.friends_win = friends_list();
+            self.friends_win = friends_list(username=self.user_.get_username());
 
-            self.chat_win.show()
+            self.friends_win.show()
         else:
             QMessageBox.warning(self,"Erro!","Problemas na conexão com o banco", QMessageBox.Ok) # Warning de exemplo
             self.clear_components()
@@ -128,7 +128,7 @@ class login_thread(QObject):
     def connect(self,user,password) -> None:
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("192.168.100.47", 12345))
+        soc.connect(("127.0.0.1", 12345))
 
         public_key = soc.recv(4096)
 
