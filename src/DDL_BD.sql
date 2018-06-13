@@ -25,18 +25,20 @@ create table conversation(
 		CONSTRAINT CONVERSATION_PK PRIMARY KEY(conversation_id),
 		CONSTRAINT USER_ONE_FK FOREIGN KEY(user_one) REFERENCES chat_user (user_id) ON DELETE CASCADE,
 		CONSTRAINT USER_TWO_FK FOREIGN KEY(user_two) REFERENCES chat_user (user_id) ON DELETE CASCADE,
-		CONSTRAINT PRECEDENCE_CHECK CHECK(user_one < user_two));
+		CONSTRAINT PRECEDENCE_CHECK CHECK(user_one < user_two),
+		CONSTRAINT UNIQUE_CONV UNIQUE(user_one,user_two));
 
 create table message(
 		message_id serial not null,
 		message_data text not null,
 		date_sent date not null,
 		exp_date date not null,
-		receiving_user varchar(64) not null,
+		receiving_user integer not null,
 		was_received char(1) not null,
 		conversation_id integer not null,
 		CONSTRAINT CONVERSATION_FK FOREIGN KEY(conversation_id) REFERENCES conversation(conversation_id),
 		CONSTRAINT MESSAGE_PK primary key(message_id),
+		CONSTRAINT USER_FK FOREIGN KEY(receiving_user) REFERENCES char_user(user_id),
 		CONSTRAINT EXP_DATE_CHECK CHECK(exp_date > date_sent));
 
 create table key_set(
@@ -46,3 +48,4 @@ create table key_set(
 		conversation_id integer not null,
 		CONSTRAINT KEY_SET_PK PRIMARY KEY(key_set_id),
 		CONSTRAINT CONVERSATION_FK FOREIGN KEY(conversation_id) REFERENCES conversation (conversation_id) ON DELETE CASCADE);
+		CONSTRAINT UNIQUE_USER_CONV UNIQUE(private_owner,conversation_id)
