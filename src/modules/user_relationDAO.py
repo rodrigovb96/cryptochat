@@ -1,4 +1,4 @@
-from database import CryptoDatabase
+from modules.database import CryptoDatabase
 
 class UserRelationDAO:
 	
@@ -30,7 +30,7 @@ class UserRelationDAO:
 	def select_by_users(self,users):
 		query = "SELECT * FROM relation_type WHERE first_user = %s AND second_user = %s"
 		data = tuple(sorted([users[0],users[1]]))
-		return self.conn.query(query,query_data=data)
+		return self.conn.query(query,query_data=data)[0]
 
 	def select_by_single_user(self,user_id):
 		query = "SELECT * FROM relation_type WHERE first_user = %s OR second_user = %s"
@@ -44,3 +44,4 @@ class UserRelationDAO:
 	def select_friends_of_user(self,user_id):
 		query = "SELECT first_user FROM user_relation WHERE second_user = %s AND relation_type = 'friends' UNION SELECT second_user FROM user_relation WHERE first_user = %s AND relation_type = 'friends'"
 		return self.conn.query(query,query_data=tuple([user_id]*2))
+

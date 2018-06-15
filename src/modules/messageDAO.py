@@ -1,4 +1,4 @@
-from database import CryptoDatabase
+from modules.database import CryptoDatabase
 
 class MessageDAO:
 	
@@ -14,7 +14,7 @@ class MessageDAO:
 
 	def update(self,message_id):
 		query = "UPDATE message SET was_received = %s WHERE message_id = %s"
-		self.conn.execute(query,query_data=('1',message_id)
+		self.conn.execute(query,query_data=('1',message_id))
 		result = self.conn.query("SELECT * FROM message WHERE was_received = %s AND message_id = %s",('1',message_id))
 		self.conn.commit()
 		return len(result)

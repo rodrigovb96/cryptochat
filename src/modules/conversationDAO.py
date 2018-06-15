@@ -1,4 +1,4 @@
-from database import CryptoDatabase
+from modules.database import CryptoDatabase
 
 class ConversationDAO:
 	
@@ -22,7 +22,7 @@ class ConversationDAO:
 	def select_by_users(self,users):
 		query = "SELECT * FROM conversation WHERE user_one = %s AND user_two = %s"
 		data = tuple(sorted([users[0],users[1]]))
-		return self.conn.query(query,query_data=data)
+		return self.conn.query(query,query_data=data)[0]
 
 	def select_by_single_user(self,user_id):
 		query = "SELECT * FROM conversation WHERE user_one = %s OR user_two = %s"

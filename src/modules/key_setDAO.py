@@ -1,4 +1,4 @@
-from database import CryptoDatabase
+from modules.database import CryptoDatabase
 
 class KeySetDAO:
 	
@@ -36,5 +36,5 @@ class KeySetDAO:
 
 	def select_by_owner_conversation(self,data):
 		query = "SELECT * FROM key_set WHERE private_owner = %s AND conversation_id = %s"
-		return self.conn.query(query,query_data=data)
+		return self.conn.query(query,query_data=data)[0]
 
