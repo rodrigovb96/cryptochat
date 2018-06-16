@@ -22,7 +22,11 @@ class ConversationDAO:
 	def select_by_users(self,users):
 		query = "SELECT * FROM conversation WHERE user_one = %s AND user_two = %s"
 		data = tuple(sorted([users[0],users[1]]))
-		return self.conn.query(query,query_data=data)[0]
+		res = self.conn.query(query,query_data=data)
+		if(len(res) > 0):
+			return res[0]
+		else:
+			return None
 
 	def select_by_single_user(self,user_id):
 		query = "SELECT * FROM conversation WHERE user_one = %s OR user_two = %s"

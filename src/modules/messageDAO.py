@@ -8,7 +8,7 @@ class MessageDAO:
 	def insert(self,message_data:tuple):
 		query = "INSERT INTO message (message_data,date_sent,exp_date,receiving_user,was_received,conversation_id) VALUES (%s,%s,%s,%s,%s,%s)"
 		self.conn.execute(query,query_data=message_data)
-		result = self.conn.query("SELECT * FROM chat_user WHERE message_data = %s AND date_sent = %s AND exp_date = %s AND receiving_user = %s AND was_received = %s AND conversation_id",message_data)
+		result = self.conn.query("SELECT * FROM message WHERE message_data = %s AND date_sent = %s AND exp_date = %s AND receiving_user = %s AND was_received = %s AND conversation_id = %s",message_data)
 		self.conn.commit()
 		return len(result)
 

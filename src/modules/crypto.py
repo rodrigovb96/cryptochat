@@ -160,7 +160,15 @@ class CryptoEngine(object):
 		if(not self.is_HASH_ready()):
 			raise Exception('HASH state not set')
 		
-		h = SHA256.new(raw_string.encode('utf-8'))
+		h = SHA256.new(raw_string.encode("utf8"))
+
+		return h.hexdigest() 
+
+	def hash_byte_string(self,raw_string):
+		if(not self.is_HASH_ready()):
+			raise Exception('HASH state not set')
+		
+		h = SHA256.new(raw_string)
 
 		return h.hexdigest() 
 

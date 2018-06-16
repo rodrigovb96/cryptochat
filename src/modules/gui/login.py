@@ -14,7 +14,7 @@ import socket,pickle
 
 class login_window(QWidget):
 
-    signal_start_background_job = pyqtSignal(str,str)    
+    signal_start_background_job = pyqtSignal(user.ChatUser)    
 
     def __init__(self, parent=None):
         super(login_window,self).__init__()
@@ -96,7 +96,7 @@ class login_window(QWidget):
 
     def call_auth_socket(self):
         self.thread.start()
-        self.signal_start_background_job.emit(self.user_.get_username(),self.user_.get_password())
+        self.signal_start_background_job.emit(self.user_)
 
     @pyqtSlot(str)
     def auth_result(self,auth_flag):
@@ -124,8 +124,8 @@ class login_window(QWidget):
 class login_thread(QObject):
     result = pyqtSignal(str)
 
-    @pyqtSlot(str,str)
-    def connect(self,user,password) -> None:
+    @pyqtSlot(user.ChatUser)
+    def connect(self,user) -> None:
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
         soc.connect(("127.0.0.1", 12345))
@@ -137,10 +137,12 @@ class login_thread(QObject):
         encrypt_obj = CryptoEngine()
         encrypt_obj.init_RSA_mode(key=public_key)
 
-        user = encrypt_obj.encrypt_RSA_string(raw_str=user.encode("utf8")) 
-        password = encrypt_obj.encrypt_RSA_string(raw_str=password.encode("utf8")) 
-
-        soc.send(pickle.dumps({"user" : user,  "password" : password }))
+        username = encrypt_obj.encrypt_RSA_string(raw_str=user.get_username().encode("utf8")) 
+        password = encrypt_obj.encrypt_RSA_string(raw_str=user.get_password().encode("utf8")) 
+		
+		pb_key = user.get_user_publicKey()
+		
+        soc.send(pickle.dumps({"user" : user,  "password" : password , "publickey" : pb_key}))
 
         result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
         result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode

@@ -1,7 +1,7 @@
 import socket,sys,pickle
 from threading import Thread
 from modules.crypto import CryptoEngine
-
+from modules.userDAO import UserDAO
 import time
 
 LOG = print
@@ -56,13 +56,20 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
 
     user = key.decrypt_RSA_string(cipher_str=res["user"])
     password = key.decrypt_RSA_string(cipher_str=res["password"])
+    pb_key = res["penis"] 
+
 
     LOG(user)
     LOG(password)
+	
+    user_db = UserDAO()
+	
+    if user_db.try_to_login(nickname=user,password=password,publickey=pb_key):
+        print("FOI")
+    else:
+        print("NAO FOI")
+		
 
-    '''
-        Verificar o usuário e a senha no banco
-    '''
     conn.sendall('True'.encode("utf8"))  # send it to client
 
 
@@ -159,7 +166,7 @@ def start_server():
     LOG('Socket created')
 
     try:
-        soc.bind(('127.0.0.1', 12345))
+        soc.bind(('192.168.100.48', 12345))
         LOG('Socket bind complete')
     except socket.error as msg:
         LOG('Bind failed. Error : ' + str(sys.exc_info()))
