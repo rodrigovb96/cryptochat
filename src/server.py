@@ -8,7 +8,6 @@ LOG = print
 
 def rec_data(conn,MAX_BUFFER_SIZE):
     
-    LOG("AGUARDANDO DADOS")
 
     try:
         input_from_client_bytes = conn.recv(MAX_BUFFER_SIZE)
@@ -16,7 +15,6 @@ def rec_data(conn,MAX_BUFFER_SIZE):
         print("FUDEU")
         
 
-    LOG("PASSOU DAQUI PQ? N SEI")
 
 
     siz = sys.getsizeof(input_from_client_bytes)
@@ -52,25 +50,23 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
         print('The length of input is probably too long: {}'.format(siz))
 
     res = process_input(input_from_client)
-    LOG(res)
 
     user = key.decrypt_RSA_string(cipher_str=res["user"])
     password = key.decrypt_RSA_string(cipher_str=res["password"])
-    pb_key = res["penis"] 
+    pb_key = res["publickey"] 
 
 
-    LOG(user)
-    LOG(password)
 	
     user_db = UserDAO()
 	
     if user_db.try_to_login(nickname=user,password=password,publickey=pb_key):
+        conn.sendall('True'.encode("utf8"))  # send it to client
         print("FOI")
     else:
+        conn.sendall('False'.encode("utf8"))  # send it to client
         print("NAO FOI")
 		
 
-    conn.sendall('True'.encode("utf8"))  # send it to client
 
 
 

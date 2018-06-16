@@ -34,10 +34,12 @@ class UserDAO:
 			return None
 
 	def try_to_login(self,nickname,password,publickey):
+		from modules.crypto import CryptoEngine		
 		salt_pos = 3
 		hash_pos = 2
 
 		nick = nickname.decode("utf8")
+
 		select_result = self.select_by_nickname(nickname=nick)
 		engine = CryptoEngine()
 		engine.init_HASH_mode()	
@@ -48,24 +50,26 @@ class UserDAO:
 			salt = get_random_bytes(16)
 			password_salt = password + salt
 			hash_pass = engine.hash_byte_string(password_salt)
-			self.insert(user_data=(nickname,hash_pass,password_salt,publickey))
+			self.insert(user_data=(nick,hash_pass,salt,publickey,'0'))
 			
 			return True	
 		else:
-			password_salt = password + select_result[salt_pos]
-			
-			from modules.crypto import CryptoEngine		
+
+			password_salt = password + bytes(select_result[salt_pos])
 
 			password_hash = engine.hash_byte_string(password_salt)
 
-			if password_hash == select_result[hash_pos]: 
+			if password_hash == select_result[hash_pos].tobytes(): 
+				self.update(user_data=(nick,password_hash,select_result[salt_pos].tobytes(),publickey,'1'))
+				print("Usuario cadastrado: Login com sucesso!")
 				return True
 			else:
+				print("Usuario cadastrado: Login sem sucesso!")
 				return False
 				
 
 	
-	def select_by_nickname(self,nickname):
+	def select_by_nickname(self,nickname:str):
 		query = "SELECT * FROM chat_user WHERE nickname = %s"
 		res = self.conn.query(query,query_data=(nickname,))
 		if(len(res) > 0):

@@ -170,7 +170,7 @@ class CryptoEngine(object):
 		
 		h = SHA256.new(raw_string)
 
-		return h.hexdigest() 
+		return h.hexdigest().encode("utf8")
 
 
 

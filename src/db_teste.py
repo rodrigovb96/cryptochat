@@ -96,12 +96,11 @@ def insert_message(data):
 	messageD.insert(data)
 
 	
-'''
-data = ('nick1',get_random_bytes(30),get_random_bytes(15),get_random_bytes(20),'0')
+data = ('nick3',get_random_bytes(30),get_random_bytes(15),get_random_bytes(20),'0')
 
 if(insert_user(data)):
 	print('insert 1 ok')
-
+'''
 data = ('nick2',get_random_bytes(30),get_random_bytes(15),get_random_bytes(20),'0')
 
 
