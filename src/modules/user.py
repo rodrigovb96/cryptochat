@@ -46,14 +46,15 @@ class ChatUser(object):
 
 	def get_user_publicKey(self):
 		if(self.rsaKey != None):
-			publickey = self.rsaKey.generate_RSA_keypair()[1]
+			publickey = self.rsaKey.generate_RSA_keypair(_passphrase = self.__password)[1]
 			return publickey
 		else:
 			raise Exception('RSA key not set')
 
 	def get_user_privateKey(self):
 		if(self.rsaKey != None):
-			privatekey = self.rsaKey.generate_RSA_keypair()[0]
+			privatekey = self.rsaKey.generate_RSA_keypair(_passphrase = self.__password)[0]
 			return privatekey
 		else:
 			raise Exception('RSA key not set')
+
