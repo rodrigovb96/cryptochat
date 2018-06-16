@@ -110,9 +110,11 @@ class login_window(QWidget):
             self.friends_win.show()
         else:
             QMessageBox.warning(self,"Erro!","Problemas na conexão com o banco", QMessageBox.Ok) # Warning de exemplo
+            self.name_text.setEnabled(True)
+            self.password_text.setEnabled(True)
+            self.login_btn.setEnabled(True)
             self.clear_components()
             # Lidar com erros de conexão ou autenticação do banco
-            pass
 
 
 
@@ -128,7 +130,7 @@ class login_thread(QObject):
     def connect(self,user) -> None:
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("127.0.0.1", 12345))
+        soc.connect(("192.168.100.48", 12345))
 
         soc.send("--LOGINREQ--".encode("utf8")) # Login request
 
@@ -140,9 +142,11 @@ class login_thread(QObject):
         username = encrypt_obj.encrypt_RSA_string(raw_str=user.get_username().encode("utf8")) 
         password = encrypt_obj.encrypt_RSA_string(raw_str=user.get_password().encode("utf8")) 
 		
-		pb_key = user.get_user_publicKey()
-		
-        soc.send(pickle.dumps({"user" : user,  "password" : password , "publickey" : pb_key}))
+        pb_key = user.get_user_publicKey()
+        
+        log_file = open("log.txt",'w')
+        log_file.write(str(type(pb_key)))
+        soc.send(pickle.dumps({"user" : username,  "password" : password , "publickey" : pb_key}))
 
         result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
         result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
