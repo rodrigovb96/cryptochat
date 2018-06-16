@@ -2,6 +2,8 @@ import socket,sys,pickle
 from threading import Thread
 from modules.crypto import CryptoEngine
 
+import time
+
 LOG = print
 
 def rec_data(conn,MAX_BUFFER_SIZE):
@@ -32,7 +34,7 @@ def process_input(input_string):
     processed_data = pickle.loads(input_string)
     return processed_data
 
-def login_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
+def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
 
     key = CryptoEngine()
     key.init_RSA_mode()
@@ -43,11 +45,8 @@ def login_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
     
     LOG('publickey enviada com sucesso!') 
 
-    # the input is in bytes, so decode it
     input_from_client = conn.recv(MAX_BUFFER_SIZE)
 
-    # MAX_BUFFER_SIZE is how big the message can be
-    # this is test if it's sufficiently big
     siz = sys.getsizeof(input_from_client)
     if  siz >= MAX_BUFFER_SIZE:
         print('The length of input is probably too long: {}'.format(siz))
@@ -66,11 +65,7 @@ def login_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
     '''
     conn.sendall('True'.encode("utf8"))  # send it to client
 
-    conn.close()  # close connection
-    LOG('Connection ' + ip + ':' + port + ' ended')
 
-    LOG("ENTRANDO NA THREAD DE CHAT")
-    chat_thread(conn,ip,port)
 
 
 
@@ -82,37 +77,74 @@ def friends_thread():
     pass
     
 
-def chat_thread(conn,ip,port,MAX_BUFFER_SIZE = 4096):
+def receive_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
+
+    '''
+        Verifica LOGIN TODO
+        Recebe remetente e destinatário
+    ''' 
+    
+    conn.sendall("--OKTOSEND--".encode("utf8"))
+
+    input_from_client = conn.recv(MAX_BUFFER_SIZE)
+
+    sender_receiver_msg = process_input(input_from_client)
+
+    print(sender_receiver_msg["sender"])
+    print(sender_receiver_msg["receiver"])
+    print(sender_receiver_msg["msg"])
+
+
+
+    conn.sendall("--OKTOSEND--".encode("utf8"))
+
+def send_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
+
+    
+    '''
+        VERIFICA LOGIN 
+    '''
+
+    conn.sendall("--OKTOSEND--".encode("utf8"))
+
+    input_from_client = conn.recv(MAX_BUFFER_SIZE)
+
+    receiver_sender = process_input(input_from_client)
+
+    conn.send("MESAGEM".encode("utf8")) # TODO
+
 
     while True:
-        conn_check, addr = soc.acept()
-    still_listen = True
+        client_msg = conn.recv(MAX_BUFFER_SIZE).decode("utf8")
 
-    while still_listen:
-        LOG("NA THREAD CHAT")
+        print(client_msg)
+        if "--OKTOSEND--" in client_msg:
+            time.sleep(5)
+            conn.send("MESAGEM".encode("utf8")) # TODO
+        if "--ENDOFCHAT--" in client_msg:
+            print("ACABOU CHAT")
+            return
 
-        
-        input_from_client = rec_data(conn,MAX_BUFFER_SIZE)
 
 
-        
-        LOG("PASSOU PQ?")
 
-        if "--ENDOFDATA--" in input_from_client:
+def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
 
-            print("--ENDOFDATA--")
+    operation_request = conn.recv(MAX_BUFFER_SIZE).decode("utf8")
 
-            conn.close()
-            print("Connection " + ip + ":" + port + "ended")
+    if "--LOGINREQ--" in operation_request:
+        login_handler(conn,ip,port)
+    elif "--FRIENDSREQ--" in operation_request:
+        friends_list_handler()
+    elif "--SMSGREQ--" in operation_request:
+        receive_msg_handler(conn) 
+    elif "--RMSGREQ--" in operation_request:
+        print("ENTROU AQUI")
+        send_msg_handler(conn)
 
-            still_listen = False
 
-        else:
-
-            print(input_from_client)
-
-            conn.sendall("--OKTOSEND--".encode("utf8"))
-            
+    conn.close() 
+    LOG('Connection ' + ip + ':' + port + ' ended')
 
 
 
@@ -137,22 +169,18 @@ def start_server():
     soc.listen(10)
     LOG('Socket now listening')
 
-    ips = []
 
     while True:
         conn, addr = soc.accept()
         ip, port = str(addr[0]), str(addr[1])
-        if ip not in ips:
-            LOG('Accepting connection from ' + ip + ':' + port)
-            ips.append(ip)
-            try:
-                Thread(target=login_thread, args=(conn, ip, port)).start()
-            except:
-                print('Terible error!')
-                import traceback
-                traceback.print_exc()
-        else:
-            pass
+        LOG('Accepting connection from ' + ip + ':' + port)
+        try:
+            Thread(target=client_handler, args=(conn, ip, port)).start()
+        except:
+            print('Terible error!')
+            import traceback
+            traceback.print_exc()
+
     soc.close()
 
 

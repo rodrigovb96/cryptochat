@@ -130,6 +130,8 @@ class login_thread(QObject):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
         soc.connect(("127.0.0.1", 12345))
 
+        soc.send("--LOGINREQ--".encode("utf8")) # Login request
+
         public_key = soc.recv(4096)
 
         encrypt_obj = CryptoEngine()
