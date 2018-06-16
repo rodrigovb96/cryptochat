@@ -1,13 +1,24 @@
+--drop table chat_user;
+--select * from chat_user;
+--drop table user_relation;
+--select * from user_relation;
+--drop table conversation;
+--select * from conversation;
+--drop table message;
+--select * from message;
+--drop table key_set;
+--select * from key_set;
+
 create table chat_user(
 		user_id serial not null,
 		nickname varchar(64) not null,
-		pass_hash text not null,
-		salt char(16)  not null,
-		public_key text not null,
+		pass_hash bytea not null,
+		salt bytea  not null,
+		public_key bytea not null,
 		is_active char(1) not null,
 		CONSTRAINT USER_PK PRIMARY KEY(user_id),
 		CONSTRAINT UNIQUE_NICK UNIQUE(nickname));
-
+		
 create table user_relation(
 		first_user integer not null,
 		second_user integer not null,
@@ -17,6 +28,7 @@ create table user_relation(
 		CONSTRAINT FIRST_FK foreign key(first_user) references chat_user(user_id) ON DELETE CASCADE,
 		CONSTRAINT SECOND_FK foreign key(second_user) references chat_user(user_id) ON DELETE CASCADE,
 		CONSTRAINT CHECK_RELATION CHECK (relation_type in ('pendent_first_second','pendent_second_first','friends','blocked_first_second','blocked_second_first','both_blocked')));
+
 
 create table conversation(
 		conversation_id serial not null,
@@ -28,9 +40,10 @@ create table conversation(
 		CONSTRAINT PRECEDENCE_CHECK CHECK(user_one < user_two),
 		CONSTRAINT UNIQUE_CONV UNIQUE(user_one,user_two));
 
+
 create table message(
 		message_id serial not null,
-		message_data text not null,
+		message_data bytea not null,
 		date_sent date not null,
 		exp_date date not null,
 		receiving_user integer not null,
@@ -38,14 +51,15 @@ create table message(
 		conversation_id integer not null,
 		CONSTRAINT CONVERSATION_FK FOREIGN KEY(conversation_id) REFERENCES conversation(conversation_id),
 		CONSTRAINT MESSAGE_PK primary key(message_id),
-		CONSTRAINT USER_FK FOREIGN KEY(receiving_user) REFERENCES char_user(user_id),
+		CONSTRAINT USER_FK FOREIGN KEY(receiving_user) REFERENCES chat_user(user_id),
 		CONSTRAINT EXP_DATE_CHECK CHECK(exp_date > date_sent));
+
 
 create table key_set(
 		key_set_id serial not null,
 		private_owner integer not null,
-		key char(16) not null,
+		key bytea not null,
 		conversation_id integer not null,
 		CONSTRAINT KEY_SET_PK PRIMARY KEY(key_set_id),
-		CONSTRAINT CONVERSATION_FK FOREIGN KEY(conversation_id) REFERENCES conversation (conversation_id) ON DELETE CASCADE);
-		CONSTRAINT UNIQUE_USER_CONV UNIQUE(private_owner,conversation_id)
+		CONSTRAINT CONVERSATION_FK FOREIGN KEY(conversation_id) REFERENCES conversation (conversation_id) ON DELETE CASCADE,
+		CONSTRAINT UNIQUE_USER_CONV UNIQUE(private_owner,conversation_id));
