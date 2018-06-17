@@ -55,6 +55,11 @@ class UserRelationDAO:
 
 		friend_found = uDAO.select_by_nickname(friend_nickname)
 		current_user = uDAO.select_by_nickname(nickname)
+		
+		relation_exists = self.select_relation_of_users((friend_found[0],current_user[0]))
+		
+		if(len(relation_exists) > 0):
+			return False
 
 		if(friend_found != None and current_user != None):
 			res = self.insert((friend_found[0],current_user[0],'friends'))
