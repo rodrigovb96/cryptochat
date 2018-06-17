@@ -133,9 +133,17 @@ def send_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 def search_friend_handler(conn,MAX_BUFFER_SIZE = 4096):
 	
 	search = conn.recv(MAX_BUFFER_SIZE)
-	friend = process_input(search)
+	user_friend = process_input(search)
 
-	request = U
+
+	request = UserRelationDAO().invite_friend(user_friend["username"].decode("utf8"),user_friend["friend"].decode("utf8"))
+
+	
+	print(request)
+	if request == False:
+		pass
+	else:
+		conn.send(pickle.dumps(request))
 	
 		
 	
@@ -155,8 +163,8 @@ def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
         receive_msg_handler(conn) 
     elif "--RMSGREQ--" in operation_request:
         send_msg_handler(conn)
-	elif "--SEARCHREQ--" in operation_request:
-		search_friend_handler(conn)
+    elif "--SEARCHREQ--" in operation_request:
+        search_friend_handler(conn)
 
 
     conn.close() 
