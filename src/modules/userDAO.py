@@ -60,7 +60,7 @@ class UserDAO:
 			password_hash = engine.hash_byte_string(password_salt)
 
 			if password_hash == select_result[hash_pos].tobytes(): 
-				self.update(user_data=(nick,password_hash,select_result[salt_pos].tobytes(),publickey,'1'))
+				self.update((nick,password_hash,select_result[salt_pos].tobytes(),publickey,'1',nick))
 				print("Usuario cadastrado: Login com sucesso!")
 				return True
 			else:
