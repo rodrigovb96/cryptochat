@@ -2,6 +2,7 @@ import socket,sys,pickle
 from threading import Thread
 from modules.crypto import CryptoEngine
 from modules.userDAO import UserDAO
+from modules.user_relationDAO import UserRelationDAO
 import time
 
 LOG = print
@@ -129,6 +130,17 @@ def send_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
             return
 
 
+def search_friend_handler(conn,MAX_BUFFER_SIZE = 4096):
+	
+	search = conn.recv(MAX_BUFFER_SIZE)
+	friend = process_input(search)
+
+	request = U
+	
+		
+	
+	
+	
 
 
 def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
@@ -142,8 +154,9 @@ def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
     elif "--SMSGREQ--" in operation_request:
         receive_msg_handler(conn) 
     elif "--RMSGREQ--" in operation_request:
-        print("ENTROU AQUI")
         send_msg_handler(conn)
+	elif "--SEARCHREQ--" in operation_request:
+		search_friend_handler(conn)
 
 
     conn.close() 
