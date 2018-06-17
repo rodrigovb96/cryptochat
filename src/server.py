@@ -73,13 +73,6 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
 
 
 
-def friends_thread():
-    '''
-        Verifica lista de amigos no banco
-            - Manda os amigos do banco para o servidor
-    '''
-    pass
-    
 
 def receive_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 
@@ -139,15 +132,27 @@ def search_friend_handler(conn,MAX_BUFFER_SIZE = 4096):
 	request = UserRelationDAO().invite_friend(user_friend["username"].decode("utf8"),user_friend["friend"].decode("utf8"))
 
 	
-	print(request)
 	if request == False:
 		pass
 	else:
+		request["public_key"] = bytes(request["public_key"])
 		conn.send(pickle.dumps(request))
 	
 		
+
+def search_all_friends(conn,MAX_BUFFER_SIZE = 4096):
 	
 	
+	user_nick_bytes = conn.recv(MAX_BUFFER_SIZE)
+	user_nick = user_nick_bytes.decode("utf8")
+	
+	request = UserRelationDAO().select_friends_of_user(user_nick)
+
+	if request = False:
+		pass
+	else:
+		conn.send(pickle.dumps(request))
+
 	
 
 
@@ -165,6 +170,8 @@ def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
         send_msg_handler(conn)
     elif "--SEARCHREQ--" in operation_request:
         search_friend_handler(conn)
+    elif "--SEARCHALL--" in operation_request:
+        search_all_friends(conn)
 
 
     conn.close() 
