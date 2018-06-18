@@ -55,6 +55,7 @@ class UserRelationDAO:
 			return False
 
 		query = "SELECT user_id, nickname, public_key FROM chat_user WHERE user_id IN (SELECT first_user FROM user_relation WHERE second_user = %s AND relation_type = 'friends' UNION SELECT second_user FROM user_relation WHERE first_user = %s AND relation_type = 'friends')"
+
 		return self.conn.query(query,query_data=tuple([current_user[0]]*2))
 
 	def invite_friend(self,nickname,friend_nickname):
