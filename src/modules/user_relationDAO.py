@@ -71,7 +71,7 @@ class UserRelationDAO:
 		if(friend_found != None and current_user != None):
 			res = self.insert((friend_found[0],current_user[0],'friends'))
 			if(res == 1):
-				return {"user_id":friend_found[0],"nickname":friend_found[1],"public_key":friend_found[4]}
+				return (friend_found[0],friend_found[1],friend_found[4])
 			else:
 				return False
 		else:
