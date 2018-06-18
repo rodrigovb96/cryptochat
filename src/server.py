@@ -3,7 +3,13 @@ from threading import Thread
 from modules.crypto import CryptoEngine
 from modules.userDAO import UserDAO
 from modules.user_relationDAO import UserRelationDAO
+from modules.conversationDAO import ConversationDAO
+from modules.key_setDAO import KeySetDAO
+from modules.messageDAO import MessageDAO
+	
+
 import time
+import datetime 
 
 LOG = print
 
@@ -41,6 +47,8 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
     private_key,public_key = key.generate_RSA_keypair()
 
     conn.sendall(public_key) # public_key do servidor
+
+    LOG('Requisição de login!\n')
     
     LOG('publickey enviada com sucesso!') 
 
@@ -62,45 +70,88 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
 	
     if user_db.try_to_login(nickname=user,password=password,publickey=pb_key):
         conn.sendall('True'.encode("utf8"))  # send it to client
-        print("FOI")
+        conn.sendall(pb_key)
     else:
         conn.sendall('False'.encode("utf8"))  # send it to client
-        print("NAO FOI")
 		
 
 
+def create_key_set(conn,MAX_BUFFER_SIZE = 4096):
+
+	
+	AES_KEYS = process_input(conn.recv(MAX_BUFFER_SIZE))
+	
 
 
 
-
-def friends_thread():
-    '''
-        Verifica lista de amigos no banco
-            - Manda os amigos do banco para o servidor
-    '''
-    pass
-    
 
 def receive_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 
-    '''
-        Verifica LOGIN TODO
-        Recebe remetente e destinatário
-    ''' 
+	sender_receiver = process_input(conn.recv(MAX_BUFFER_SIZE))
+		
+	user_db = UserDAO()
+	conv_db = ConversationDAO()
+	key_set_db = KeySetDAO()
+	message_db = MessageDAO()
+	
+	
+
+	user_ids = []
+	
+	res = user_db.select_by_nickname(sender_receiver["sender"])
+	
+	if res is not None:
+		user_ids.append(res[0])
+		print(user_ids)
+				
+		res = user_db.select_by_nickname(sender_receiver["receiver"])
+
+		if res is not None:
+			user_ids.append(res[0])
+		
+			res = conv_db.select_by_users(user_ids)
+
+			if res is not None:
+
+				conv_id = res[0]
+				AES = key_set_db.select_by_owner_conversation((user_ids[0],conv_id))[2]
+				
+				conn.sendall("--OKTOSEND--".encode("utf8"))	
+				conn.sendall(bytes(AES))
+
+				msg = process_input(conn.recv(MAX_BUFFER_SIZE))
+				date = msg[3]
+				exp_date = date + datetime.timedelta(days=2)
+				msg_info = (msg[0],date,exp_date,user_ids[1],'0',conv_id)
+				if message_db.insert(msg_info) is 1:
+					conn.sendall("--OK--".encode("utf8"))
+
+			else:
+				conn.sendall("--NOCONV--".encode("utf8"))	
+				AES_USER_FRIEND = process_input(conn.recv(MAX_BUFFER_SIZE))
+				
+				res = conv_db.insert(user_ids)
+
+				if res is 1:
+					conv_id = conv_db.select_by_users(user_ids)[0]
+					res = key_set_db.insert((user_ids[0],AES_USER_FRIEND["AES_USER"],user_ids[1],AES_USER_FRIEND["AES_FRIEND"],conv_id))
+					if res is 2:
+						conn.sendall("--OKTOSEND--".encode("utf8"))
+
+						msg = process_input(conn.recv(MAX_BUFFER_SIZE))
+						date = msg[3]
+						exp_date = date + datetime.timedelta(days=2)
+						msg_info = (msg[0],date,exp_date,user_ids[1],'0',conv_id)
+						if message_db.insert(msg_info) is 1:
+							conn.sendall("--OK--".encode("utf8"))
+						
+					
+
+					
+				
+
     
-    conn.sendall("--OKTOSEND--".encode("utf8"))
 
-    input_from_client = conn.recv(MAX_BUFFER_SIZE)
-
-    sender_receiver_msg = process_input(input_from_client)
-
-    print(sender_receiver_msg["sender"])
-    print(sender_receiver_msg["receiver"])
-    print(sender_receiver_msg["msg"])
-
-
-
-    conn.sendall("--OKTOSEND--".encode("utf8"))
 
 def send_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 
@@ -139,15 +190,41 @@ def search_friend_handler(conn,MAX_BUFFER_SIZE = 4096):
 	request = UserRelationDAO().invite_friend(user_friend["username"].decode("utf8"),user_friend["friend"].decode("utf8"))
 
 	
-	print(request)
 	if request == False:
 		pass
 	else:
-		conn.send(pickle.dumps(request))
+		result_request = (request[0],request[1],bytes(request[2]))	
+		conn.send(pickle.dumps(result_request))
 	
 		
+
+def search_all_friends(conn):
 	
 	
+	LOG('REQ: Buscando todos os amigos!')
+
+	user_nick_bytes = conn.recv(4096)
+	user_nick = user_nick_bytes.decode("utf8")
+	
+	request = UserRelationDAO().select_friends_of_user(user_nick)
+
+
+	if request == False:
+		pass
+	else:
+
+		result = []
+		for value in request:
+			result.append( (value[0],value[1],bytes(value[2])))	
+
+		import struct 
+
+		packet = pickle.dumps(result)
+		length = struct.pack('!I',len(packet))
+		packet = length + packet
+		
+		conn.sendall(packet)
+
 	
 
 
@@ -165,6 +242,8 @@ def client_handler(conn,ip,port,MAX_BUFFER_SIZE=4096):
         send_msg_handler(conn)
     elif "--SEARCHREQ--" in operation_request:
         search_friend_handler(conn)
+    elif "--SEARCHALL--" in operation_request:
+        search_all_friends(conn)
 
 
     conn.close() 
