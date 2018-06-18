@@ -1,4 +1,5 @@
 from modules.database import CryptoDatabase
+from modules.userDAO import UserDAO
 
 class UserRelationDAO:
 	
@@ -45,7 +46,39 @@ class UserRelationDAO:
 		data = tuple(sorted([users[0],users[1]]))
 		return self.conn.query(query,query_data=data)
 
-	def select_friends_of_user(self,user_id):
-		query = "SELECT first_user FROM user_relation WHERE second_user = %s AND relation_type = 'friends' UNION SELECT second_user FROM user_relation WHERE first_user = %s AND relation_type = 'friends'"
-		return self.conn.query(query,query_data=tuple([user_id]*2))
+	def select_friends_of_user(self,nickname):
+		uDAO = UserDAO()
+
+		current_user = uDAO.select_by_nickname(nickname)
+
+		if(len(current_user) < 1):
+			return False
+
+		query = "SELECT user_id, nickname, public_key FROM chat_user WHERE user_id IN (SELECT first_user FROM user_relation WHERE second_user = %s AND relation_type = 'friends' UNION SELECT second_user FROM user_relation WHERE first_user = %s AND relation_type = 'friends')"
+		return self.conn.query(query,query_data=tuple([current_user[0]]*2))
+
+	def invite_friend(self,nickname,friend_nickname):
+		uDAO = UserDAO()
+
+		friend_found = uDAO.select_by_nickname(friend_nickname)
+		current_user = uDAO.select_by_nickname(nickname)
+		
+		relation_exists = self.select_relation_of_users((friend_found[0],current_user[0]))
+		
+		if(len(relation_exists) > 0):
+			return False
+
+		if(friend_found != None and current_user != None):
+			res = self.insert((friend_found[0],current_user[0],'friends'))
+			if(res == 1):
+				return {"user_id":friend_found[0],"nickname":friend_found[1],"public_key":friend_found[4]}
+			else:
+				return False
+		else:
+			return False
+
+
+
+
+
 
