@@ -14,12 +14,14 @@ class friends_list(QWidget):
     search_friend_signal = pyqtSignal()
     friends = []
 
-    def __init__(self, parent=None,username="user"):
+    def __init__(self, parent=None,user=None,pb_key = "None"):
         super(friends_list,self).__init__()
         self.setWindowTitle("Amigos")
         self.setFixedSize(200,600)
 
-        self.username=username
+        self.user_ = user
+        self.username = user.get_username()
+        self.pb_key = pb_key
 
         self.search_layout = QHBoxLayout()		
 
@@ -109,7 +111,7 @@ class friends_list(QWidget):
     @pyqtSlot()
     def search_friend(self) -> None: 
         self.friend_name = self.search_field.text()
-        self.worker = search_friend_thread(self.username,self.friend_name)
+        self.worker = search_friend_thread(self.username,self.friend_name,self.pb_key)
         self.thread = QThread(self)
         self.worker.moveToThread(self.thread)
         self.search_friend_signal.connect(self.worker.run)
@@ -145,7 +147,7 @@ class friends_list(QWidget):
             friend_info = self.get_friend_info(receiver.text())
             print(friend_info)
 
-            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.username,receiver=friend_info))
+            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.user_,receiver=friend_info,pb_key=self.pb_key))
             self.receiver_pool.append(receiver.text())
             self.thread_pool.append(QThread(self))
             self.chat_pool[-1].moveToThread(self.thread_pool[-1])
@@ -158,14 +160,15 @@ class chat_friend_thread(QObject):
 
     finished = pyqtSignal(int)
 
-    def __init__(self,id_,sender,receiver):
+    def __init__(self,id_,sender,receiver,pb_key):
         super(chat_friend_thread, self).__init__()
 
         self.id = id_
         self.sender = sender
         self.receiver = receiver
+        self.pb_key = pb_key
         
-        self.chat_win = chat_window(username=self.sender,receiver=self.receiver)
+        self.chat_win = chat_window(user=self.sender,receiver=self.receiver,pb_key=self.pb_key)
         self.chat_win.closed.connect(self.done)
         self.chat_win.show()
 

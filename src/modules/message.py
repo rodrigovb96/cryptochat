@@ -60,7 +60,7 @@ class Message(object):
 		
 		rsa_privateKey = self._sender.get_user_privateKey()
 
-		_AES_info = encryptor.encrypt_AES_string(self._text,AES_key,rsa_privateKey)
+		_AES_info = encryptor.encrypt_AES_string(self._text,AES_key,self._sender)
 		
 		self._AES_info = _AES_info
 
