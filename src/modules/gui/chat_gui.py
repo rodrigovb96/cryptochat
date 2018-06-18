@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, QObject, QTimer
 import sys
 
+from .. import message.py
+
 import time
 import socket, pickle
 
@@ -13,18 +15,20 @@ class chat_window(QWidget):
     signal_start_receiver_job = pyqtSignal(int,int)
     signal_stop_receiver_job = pyqtSignal()
 
-    def __init__(self, parent=None,receiver="Friend",username="User"):
+    def __init__(self, parent=None,receiver=[],username="User"):
         super(chat_window, self).__init__()
-        self.setWindowTitle(receiver)
+        self.setWindowTitle(receiver[1])
 	
         self.setFixedSize(640,480)
         self.init_components()
         self.init_sender_thread()
 
         self.username = username
-        self.receiver = receiver
+        self.friend_id = receiver[0]
+        self.friend_name = receiver[1]
+        self.friend_pb = receiver[2]
 
-        self.init_receiver_thread()
+        #self.init_receiver_thread()
 
         self.timer = QTimer()
         self.timer.setInterval(100)
@@ -32,8 +36,6 @@ class chat_window(QWidget):
 
     def init_components(self) -> None:
 
-        self.user_id = 0 #TODO
-        self.friend_id = 1#TODO
 	 
         self.chat_text = QTextEdit()
         self.input_text = QTextEdit()
@@ -82,7 +84,7 @@ class chat_window(QWidget):
         self.signal_stop_receiver_job.connect(self.receiver_socket.stop)
 
         self.receiver_t.start()
-        self.signal_start_receiver_job.emit(self.user_id,self.friend_id)
+        self.signal_start_receiver_job.emit(self.username,self.friend_id)
 
     def closeEvent(self,event) -> None: 
         print("QUITING")
@@ -95,7 +97,7 @@ class chat_window(QWidget):
 
     @pyqtSlot(str)
     def update_chat(self,msg) -> None:
-        self.chat_text.append(self.receiver+ ": " + msg)
+        self.chat_text.append(self.friend_name+ ": " + msg)
 
 
 
@@ -124,15 +126,17 @@ class sender_thread(QObject):
     result = pyqtSignal()
 
     @pyqtSlot(int,int,str)
-    def connect(self,user_id,receiver_id,msg) -> None:
+    def connect(self,user_name,receiver_id,msg) -> None:
+
+         
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        soc.connect(("127.0.0.1",12345))
+        soc.connect(("192.168.100.48",12345))
 
         soc.send("--SMSGREQ--".encode("utf8"))
 
         if "--OKTOSEND--" in soc.recv(4096).decode("utf8"):
-            soc.send(pickle.dumps({"sender":user_id, "receiver":receiver_id,"msg":msg}))
+            soc.send(pickle.dumps({"sender":user_name, "receiver":receiver_id,"msg":msg}))
 
 
         while "--OKTOSEND--" not in soc.recv(4096).decode("utf8"):
@@ -147,12 +151,11 @@ class receiver_thread(QObject):
     def __init__(self,parent=None):
         super(receiver_thread,self).__init__()
         self.soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        self.soc.setblocking(False)
         self.still_listen = True
 
     @pyqtSlot(int,int)
     def connect(self,user_id,sender_id) -> None:
-        self.soc.connect(("127.0.0.1",12345))
+        self.soc.connect(("192.168.100.48",12345))
 
         self.soc.send("--RMSGREQ--".encode("utf8"))
 

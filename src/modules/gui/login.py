@@ -151,16 +151,6 @@ class login_thread(QObject):
         self.result.emit(result_string)
         
 
-
-
-        
-
-
-
-
-
-
-
 def start():
     app = QApplication(sys.argv)
     login = login_window()

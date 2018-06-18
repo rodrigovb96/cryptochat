@@ -12,6 +12,7 @@ class friends_list(QWidget):
 
     closed = pyqtSignal()
     search_friend_signal = pyqtSignal()
+    friends = []
 
     def __init__(self, parent=None,username="user"):
         super(friends_list,self).__init__()
@@ -38,53 +39,68 @@ class friends_list(QWidget):
 
         self.setLayout(self.layout)
 
-        self.friends = []
-
         self.thread_pool = [] 
         self.receiver_pool = []
         self.chat_pool = []
 
 
-        self.timer = QTimer()
-        self.timer.setInterval(100)
-        self.timer.start()
-        
 
     def init_list(self) -> None:
         self.listWidget = QListWidget()
         self.listWidget.setObjectName("listFriends")
         self.listWidget.itemDoubleClicked.connect(self.open_chat)
         
+        self.get_friends()
+
+        for friend in self.friends:
+            self.listWidget.addItem(friend[1])
+        self.listWidget.repaint()
         
+            
+    def get_friend_info(self,friend_name):
+        for friend in self.friends:
+            if friend_name == friend[1]:
+                return [friend[0],friend[1],friend[2]]
+        
+
+    def get_friends(self) -> None:
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
         soc.connect(("192.168.100.48", 12345))
 
         soc.send("--SEARCHALL--".encode("utf8"))
 
-        print("AQUI")
         soc.send(self.username.encode("utf8"))
-        import struct 
-
+        
+        import struct
         buf = b''
+
         while len(buf) < 4:
-            buf += soc.recv(4 - len(buf) )
+            buf += soc.recv(4-len(buf))
 
-            
-        list_of_friends = struct.unpack('!I',buf)[0]
+        length = struct.unpack('!I',buf)[0]
 
+        data = b''
 
+        l = length
 
-        print(list_of_friends)
+        while l > 0:
+            d = soc.recv(l)
+            l -= len(d)
+            data += d
+
+        self.friends = pickle.loads(data) 
 
 
     def update_list(self,friend) -> None:
-        self.listWidget.addItem(friend["nickname"])
+        self.listWidget.addItem(friend[1])
         self.listWidget.repaint()
+
 
 
 
     @pyqtSlot(object)
     def add_friend(self,friend) -> None:
+        print(self.friends)
         self.friends.append(friend)
         self.update_list(friend)
         self.thread.quit()
@@ -100,6 +116,7 @@ class friends_list(QWidget):
         self.worker.result.connect(self.add_friend)
         self.thread.start()
         self.search_friend_signal.emit()
+        self.search_field.setText("")
     
         
 
@@ -121,8 +138,14 @@ class friends_list(QWidget):
     @pyqtSlot(QListWidgetItem)
     def open_chat(self,receiver) -> None:
 
+        
         if receiver.text() not in self.receiver_pool:
-            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.username,receiver=receiver.text()))
+            
+            print("DEBUG")
+            friend_info = self.get_friend_info(receiver.text())
+            print(friend_info)
+
+            self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.username,receiver=friend_info))
             self.receiver_pool.append(receiver.text())
             self.thread_pool.append(QThread(self))
             self.chat_pool[-1].moveToThread(self.thread_pool[-1])
@@ -174,7 +197,6 @@ class search_friend_thread(QObject):
         result_bytes = soc.recv(4096)
         result = pickle.loads(result_bytes)
             
-        print(str(type(result)))
         
         self.result.emit(result)
         
