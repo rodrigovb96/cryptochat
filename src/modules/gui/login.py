@@ -144,8 +144,6 @@ class login_thread(QObject):
 		
         pb_key = user.get_user_publicKey()
         
-        log_file = open("log.txt",'w')
-        log_file.write(str(type(pb_key)))
         soc.send(pickle.dumps({"user" : username,  "password" : password , "publickey" : pb_key}))
 
         result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
