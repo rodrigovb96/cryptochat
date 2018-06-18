@@ -8,7 +8,7 @@ class Message(object):
 		
 		if(text == None and AES_info != None):
 			self._text = None
-			self._AES_info = AES_info
+			self._AES_info = pickle.loads(AES_info)
 		elif(AES_info == None and text != None):
 			self._AES_info = None
 			self._text = text
@@ -46,7 +46,8 @@ class Message(object):
 
 	def get_string(self,AES_key):
 		self.encrypt(AES_key)
-		data = [self._AES_info,self._sender.get_username(),self._receiver,self._date]
+		pickled_msg = pickle.dumps(self._AES_info)
+		data = [pickled_msg,self._sender.get_username(),self._receiver,self._date]
 		string = pickle.dumps(data)
 		return string
 	
