@@ -45,6 +45,8 @@ class friends_list(QWidget):
         self.receiver_pool = []
         self.chat_pool = []
 
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
 
 
     def init_list(self) -> None:
@@ -67,14 +69,18 @@ class friends_list(QWidget):
 
     def get_friends(self) -> None:
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+
         ip = ''
         with open('ip.txt','r') as f:
             ip = f.read()
+        
         soc.connect((ip, 12345))
 
         soc.send("--SEARCHALL--".encode("utf8"))
 
-        soc.send(self.username.encode("utf8"))
+        print("Enviando nome: " + self.username)
+        soc.sendall(self.username.encode("utf8"))
+        print("Enviado")
         
         import struct
         buf = b''
