@@ -76,10 +76,6 @@ def login_handler(conn, ip, port, MAX_BUFFER_SIZE = 4096):
 		
 
 
-def create_key_set(conn,MAX_BUFFER_SIZE = 4096):
-
-	
-	AES_KEYS = process_input(conn.recv(MAX_BUFFER_SIZE))
 	
 
 
@@ -155,31 +151,53 @@ def receive_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 
 def send_msg_handler(conn,MAX_BUFFER_SIZE = 4096):
 
-    
-    '''
-        VERIFICA LOGIN 
-    '''
-
-    conn.sendall("--OKTOSEND--".encode("utf8"))
 
     input_from_client = conn.recv(MAX_BUFFER_SIZE)
 
-    receiver_sender = process_input(input_from_client)
+    sender_receiver = process_input(input_from_client)
 
-    conn.send("MESAGEM".encode("utf8")) # TODO
+    msg_db = MessageDAO()
+    conv_db = ConversationDAO()
+    key_set_db = KeySetDAO()
+    user_db = UserDAO()
 
+    user_ids = []
+	
+    res = user_db.select_by_nickname(sender_receiver["sender"])
+	
+    if res is not None:
+        user_ids.append(res[0])
+        print(user_ids)
+				
+        res = user_db.select_by_nickname(sender_receiver["receiver"])
 
-    while True:
-        client_msg = conn.recv(MAX_BUFFER_SIZE).decode("utf8")
+        if res is not None:
+            user_ids.append(res[0])
+		
+            res = conv_db.select_by_users(user_ids)
 
-        print(client_msg)
-        if "--OKTOSEND--" in client_msg:
-            time.sleep(5)
-            conn.send("MESAGEM".encode("utf8")) # TODO
-        if "--ENDOFCHAT--" in client_msg:
-            print("ACABOU CHAT")
-            return
+            if res is not None:
 
+                conv_id = res[0]
+                AES = key_set_db.select_by_owner_conversation((user_ids[1],conv_id))[2]
+                conn.sendall(bytes(AES))
+
+    temp_msg_list = msg_db.fetch_unread_messages_by_users(sender_receiver["receiver"],sender_receiver["sender"])
+	
+	
+    messages_list = []
+    for msg in temp_msg_list:
+       messages_list.append( (msg[0],bytes(msg[1]),msg[2],msg[3],msg[4],msg[5],msg[6]) )
+		
+		
+
+    conn.sendall(pickle.dumps(messages_list))
+	
+    if "--ALLREAD--" in conn.recv(MAX_BUFFER_SIZE).decode("utf8"):
+        for msg in temp_msg_list:
+           msg_db.update(msg[0])
+
+	
 
 def search_friend_handler(conn,MAX_BUFFER_SIZE = 4096):
 	
@@ -261,8 +279,12 @@ def start_server():
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     LOG('Socket created')
 
+    ip_serv = ''
+    with open('ip.txt','r') as f:	
+        ip_serv = f.read()
+		
     try:
-        soc.bind(('192.168.100.48', 12345))
+        soc.bind((ip_serv, 12345))
         LOG('Socket bind complete')
     except socket.error as msg:
         LOG('Bind failed. Error : ' + str(sys.exc_info()))

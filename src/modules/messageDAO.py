@@ -30,7 +30,7 @@ class MessageDAO:
 		res = self.conn.query(query,query_data=(message_id,))
 		if(len(res) > 0):
 			return res[0]
-		else
+		else:
 			return None
 
 	def check_unread_messages_by_user(self,user_id):
