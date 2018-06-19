@@ -134,7 +134,7 @@ class login_thread(QObject):
         with open('ip.txt','r') as f:
             ip = f.read()
 
-        soc.connect((ip, 12345))
+        soc.connect((ip, 50000))
 
         soc.send("--LOGINREQ--".encode("utf8")) # Login request
 

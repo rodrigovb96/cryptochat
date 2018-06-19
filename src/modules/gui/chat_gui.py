@@ -34,6 +34,8 @@ class chat_window(QWidget):
         print(self.friend_name)
         self.friend_pb = receiver[2]
 
+        
+
         self.init_receiver_thread()
     
         self.generate_AES_keyset()
@@ -83,13 +85,16 @@ class chat_window(QWidget):
         
         self.AES_KEY_FRIEND = key_friend.encrypt_RSA_string(raw_str=self.AES_KEY)
 
+    def closeEvent(self,event) -> None:
+        self.closed.emit()
+
     def fetch_messages(self) -> None:
         self.receiver_t.start()
         self.signal_start_receiver_job.emit(self.friend_name,self.user_,self.friend_pb)
 
 
 
-
+    
     def init_sender_thread(self) -> None:
 
         self.sender_socket = sender_thread()
@@ -130,9 +135,8 @@ class chat_window(QWidget):
        self.sender_t.wait()
        self.chat_text.append(self.username+ ": " + self.input_text.toPlainText())
        self.input_text.clear()
-       print("OK")
+       print("Mensagem enviada")
        self.AES_KEY = AES_KEY
-       print(self.AES_KEY)
 
     @pyqtSlot()
     def send_msg(self) -> None:
@@ -153,7 +157,6 @@ class sender_thread(QObject):
     @pyqtSlot(object,str,str,bytes,bytes,bytes)
     def connect(self,user,receiver_name,msg,AES_KEY,AES_KEY_pb1,AES_KEY_pb2) -> None:
 
-        print(user.get_password())
         import datetime
         message_ = message.Message(sender=user,receiver=receiver_name,date=datetime.date.today(),text=msg)
 
@@ -164,7 +167,7 @@ class sender_thread(QObject):
         ip = ''
         with open('ip.txt','r') as f:
             ip = f.read()
-        soc.connect((ip,12345))
+        soc.connect((ip,50000))
 
         soc.send("--SMSGREQ--".encode("utf8"))
         soc.send(pickle.dumps({"sender" : user.get_username() , "receiver" : receiver_name}))
@@ -210,7 +213,7 @@ class receiver_thread(QObject):
         ip = ''
         with open('ip.txt','r') as f:
             ip = f.read()
-        soc.connect((ip,12345))
+        soc.connect((ip,50000))
 
         soc.send("--RMSGREQ--".encode("utf8"))
 
@@ -220,7 +223,7 @@ class receiver_thread(QObject):
         
         engine = crypto.CryptoEngine()
         engine.init_RSA_mode(key=user.get_user_privateKey(),_passphrase=user.get_password())
-        AES_KEY = engine.decrypt_RSA_string(AES_KEY_encrypt.rstrip())
+        AES_KEY = engine.decrypt_RSA_string(AES_KEY_encrypt)
 
         messages = pickle.loads(soc.recv(4096))
 

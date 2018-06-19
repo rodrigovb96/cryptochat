@@ -74,7 +74,7 @@ class friends_list(QWidget):
         with open('ip.txt','r') as f:
             ip = f.read()
         
-        soc.connect((ip, 12345))
+        soc.connect((ip, 50000))
 
         soc.send("--SEARCHALL--".encode("utf8"))
 
@@ -152,9 +152,9 @@ class friends_list(QWidget):
         
         if receiver.text() not in self.receiver_pool:
             
-            print("DEBUG")
+            #print("DEBUG")
             friend_info = self.get_friend_info(receiver.text())
-            print(friend_info)
+            #print(friend_info)
 
             self.chat_pool.append(chat_friend_thread(id_=len(self.thread_pool)-1,sender=self.user_,receiver=friend_info,pb_key=self.pb_key))
             self.receiver_pool.append(receiver.text())
@@ -183,6 +183,7 @@ class chat_friend_thread(QObject):
 
     @pyqtSlot()
     def done(self) -> None:
+        print("DEBUG")
         self.finished.emit(self.id)
 
     def chat(self) -> None:
@@ -205,7 +206,7 @@ class search_friend_thread(QObject):
         ip = ''
         with open('ip.txt','r') as f:
             ip = f.read()
-        soc.connect((ip, 12345))
+        soc.connect((ip, 50000))
 
         soc.send("--SEARCHREQ--".encode("utf8"))
         soc.send(pickle.dumps({"username" : self.username.encode("utf8"), "friend" : self.friend.encode("utf8")}))
