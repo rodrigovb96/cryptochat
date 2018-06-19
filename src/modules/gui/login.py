@@ -130,7 +130,11 @@ class login_thread(QObject):
     def connect(self,user) -> None:
 
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("192.168.100.48", 12345))
+        ip = ''
+        with open('ip.txt','r') as f:
+            ip = f.read()
+
+        soc.connect((ip, 12345))
 
         soc.send("--LOGINREQ--".encode("utf8")) # Login request
 

@@ -67,7 +67,10 @@ class friends_list(QWidget):
 
     def get_friends(self) -> None:
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("192.168.100.48", 12345))
+        ip = ''
+        with open('ip.txt','r') as f:
+            ip = f.read()
+        soc.connect((ip, 12345))
 
         soc.send("--SEARCHALL--".encode("utf8"))
 
@@ -111,7 +114,7 @@ class friends_list(QWidget):
     @pyqtSlot()
     def search_friend(self) -> None: 
         self.friend_name = self.search_field.text()
-        self.worker = search_friend_thread(self.username,self.friend_name,self.pb_key)
+        self.worker = search_friend_thread(self.username,self.friend_name)
         self.thread = QThread(self)
         self.worker.moveToThread(self.thread)
         self.search_friend_signal.connect(self.worker.run)
@@ -193,7 +196,10 @@ class search_friend_thread(QObject):
     @pyqtSlot()
     def run(self):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        soc.connect(("192.168.100.48", 12345))
+        ip = ''
+        with open('ip.txt','r') as f:
+            ip = f.read()
+        soc.connect((ip, 12345))
 
         soc.send("--SEARCHREQ--".encode("utf8"))
         soc.send(pickle.dumps({"username" : self.username.encode("utf8"), "friend" : self.friend.encode("utf8")}))
@@ -202,10 +208,10 @@ class search_friend_thread(QObject):
             
         
         self.result.emit(result)
-        
+    
 
 
-        
+    
 
 
 
