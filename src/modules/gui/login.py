@@ -98,14 +98,14 @@ class login_window(QWidget):
         self.thread.start()
         self.signal_start_background_job.emit(self.user_)
 
-    @pyqtSlot(str)
-    def auth_result(self,auth_flag):
+    @pyqtSlot(str,bytes)
+    def auth_result(self,auth_flag,pb_key):
         self.thread.quit()
         self.thread.wait()
         
         if auth_flag == 'True':
             self.close()
-            self.friends_win = friends_list(username=self.user_.get_username());
+            self.friends_win = friends_list(user=self.user_,pb_key=pb_key);
 
             self.friends_win.show()
         else:
@@ -124,7 +124,7 @@ class login_window(QWidget):
     e realizar a autenticação do usuário
 '''
 class login_thread(QObject):
-    result = pyqtSignal(str)
+    result = pyqtSignal(str,bytes)
 
     @pyqtSlot(user.ChatUser)
     def connect(self,user) -> None:
@@ -148,18 +148,11 @@ class login_thread(QObject):
 
         result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
         result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
-        self.result.emit(result_string)
+
+        if result_string == 'True':
+            pb_key = soc.recv(4096)
+            self.result.emit(result_string,pb_key)
         
-
-
-
-        
-
-
-
-
-
-
 
 def start():
     app = QApplication(sys.argv)

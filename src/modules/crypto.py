@@ -99,7 +99,7 @@ class CryptoEngine(object):
 	def init_AES_mode(self):
 		self.__set_AES_ready(True)
 
-	def encrypt_AES_string(self,raw_str,AES_key,RSA_private_key):
+	def encrypt_AES_string(self,raw_str,AES_key,user):
 		if(not self.__AES_ready):
 			raise Exception('AES state not set')
 			
@@ -107,8 +107,9 @@ class CryptoEngine(object):
 		cipher = AES.new(AES_key,AES.MODE_EAX,nonce=nonce)
 		ciphertext, tag = cipher.encrypt_and_digest(bytearray(raw_str,'utf-8'))
 		
+		RSA_private_key = user.get_user_privateKey()
 		signer = CryptoEngine()
-		signer.init_SIG_mode(RSA_private_key)
+		signer.init_SIG_mode(RSA_private_key,user.get_password())
 		signature = signer.sign_string(tag)
 
 		return (ciphertext,tag,nonce,signature)
@@ -133,8 +134,8 @@ class CryptoEngine(object):
 		else:
 			raise Exception('Message not authentic')
 	
-	def init_SIG_mode(self,RSA_key=None):
-		self.init_RSA_mode(key=RSA_key)
+	def init_SIG_mode(self,RSA_key=None,password=None):
+		self.init_RSA_mode(key=RSA_key,_passphrase=password)
 	
 	def sign_string(self,unsigned_str):
 		
