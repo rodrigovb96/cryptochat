@@ -19,7 +19,7 @@ def rec_data(conn,MAX_BUFFER_SIZE):
     try:
         input_from_client_bytes = conn.recv(MAX_BUFFER_SIZE)
     except:
-        print("FUDEU")
+        print("nao deu")
         
 
 
